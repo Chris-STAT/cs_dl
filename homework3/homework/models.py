@@ -106,17 +106,37 @@ class FCN(torch.nn.Module):
                          torch.nn.ReLU()
                          )
         self.d_layer_2 = torch.nn.Sequential(
-                         torch.nn.Con2d(32,64, kernel_size=3, stride=2, padding=1),
-                         torch.nn.BatchNorm2d(32),
+                         torch.nn.Con2d(32,64, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(64),
                          torch.nn.ReLU()
                          )
         self.d_layer_3 = torch.nn.Sequential(
+                         torch.nn.Con2d(64,128, kernel_size =3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(128),
+                         torch.nn.ReLU()
+                         )
+        self.u_layer_3 = torch.nn.Sequential(
+                         torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(64),
+                         torch.nn.ReLU()
+                         )
+        self.u_layer_2 = torch.nn.Sequential(
+                         torch.nn.ConvTranspose2d(64,32, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(32),
+                         torch.nn.ReLU()
+                         )
 
+       self.u_layer_1 = torch.nn.Sequential(
+                        torch.nn.ConvTranspose2d(32,5, kernel_size=3, stride=1, padding=1),
+                        torch.nn.BatchNorm2d(5)
+                        torch.nn.ReLU()
+                        )
 
-        )
+        self.skip_d_1_2 = torch.nn.ConvTranspose2d(32,64, kernel_size=3, stride=1, padding=1)
+        self.skip_d_2_3 = torch.nn.ConvTranspose2d(64,128, kernel_size=3, stride=1, padding=1)
 
-
-
+        self.skip_u_3_4 = torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1)
+        self.skip_u_4_5 = torch.nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=1)
 
 
 
@@ -130,7 +150,24 @@ class FCN(torch.nn.Module):
               if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
               convolution
         """
-        raise NotImplementedError('FCN.forward')
+        #raise NotImplementedError('FCN.forward')
+        _, _, h, w = x.shape
+        x1 = self.d_layer_1(x)
+        x2 = self.d_layer_2(x1)
+        x2 = x2 + self.skip_u_1_2(x1)
+        x3 = self.d_layer_3(x2)
+        x3 = x3 + self.skip_u_2_3(x2)
+        x4 = self.u_layer_3(x3)
+        x4 = x4 + self.skip_3_4(x3)
+        x5 = self.u_layer_2(x4)
+        x5 = x5 + self.skip_u_4_5(x4)
+        x_output = x5[:,:,:h,:w]
+        return x_output
+
+
+
+
+
 
 
 model_factory = {
