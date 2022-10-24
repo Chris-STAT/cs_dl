@@ -169,7 +169,6 @@ class FCN(torch.nn.Module):
         x_output = x5[:,:,:h,:w]
         return x_output
 
-torch.cat([x_up4, x_down3], dim=1)
 
 model_factory = {
     'cnn': CNNClassifier,
