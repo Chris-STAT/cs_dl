@@ -25,7 +25,7 @@ class ResBlock(torch.nn.Module):
         super().__init__()
         self.cnn_layer_1 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
         self.bn_layer_1 = torch.nn.BatchNorm2d(out_c)
-        self.cnn_layer_2 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
+        self.cnn_layer_2 = torch.nn.Conv2d(in_c, out_c, 3, stride = 2, padding = 1)
         self.bn_layer_2 = torch.nn.BatchNorm2d(out_c)
         self.act_layer= torch.nn.ReLU()
 
@@ -51,7 +51,7 @@ class CNNClassifier(torch.nn.Module):
         """
 
         input_channels = 3
-        img_size = 64
+        img_size = 128
         in_c = img_size
         out_c = img_size
         n_classes = 6
@@ -96,7 +96,26 @@ class FCN(torch.nn.Module):
         Hint: Use residual connections
         Hint: Always pad by kernel_size / 2, use an odd kernel_size
         """
-        raise NotImplementedError('FCN.__init__')
+        #raise NotImplementedError('FCN.__init__')
+
+        input_channels = 3
+
+        self.d_layer_1 = torch.nn.Sequential(
+                         torch.nn.Con2d(input_channels, 32, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(32),
+                         torch.nn.ReLU()
+                         )
+        self.d_layer_2 = torch.nn.Sequential(
+                         torch.nn.Con2d(32,64, kernel_size=3, stride=2, padding=1),
+                         torch.nn.BatchNorm2d(32),
+                         torch.nn.ReLU()
+                         )
+
+
+
+
+
+
 
     def forward(self, x):
         """
