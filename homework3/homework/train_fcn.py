@@ -28,10 +28,10 @@ def train(args):
     loss_func = ClassificationLoss()
     loss_func.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-    epochs = 50
+    epochs = 30
 
-    trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
-    data_train = load_dense_data('data/train', transform = trans)
+    #trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
+    data_train = load_dense_data('dense_data/train')
 
 
     for epoch in range(epochs):
