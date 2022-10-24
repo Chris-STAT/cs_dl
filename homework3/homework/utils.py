@@ -13,7 +13,7 @@ DENSE_CLASS_DISTRIBUTION = [0.52683655, 0.02929112, 0.4352989, 0.0044619, 0.0041
 
 
 class SuperTuxDataset(Dataset):
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, transform=None):
         """
         Your code here
         Hint: Use the python csv library to parse labels.csv
@@ -32,6 +32,7 @@ class SuperTuxDataset(Dataset):
         for row in csv_reader:
             self.images.append(image_to_tensor(Image.open(os.path.join(dataset_path, row[0]))))
             self.labels.append(LABEL_NAMES.index(row[1]))
+        self.transform = transform
 
 
     def __len__(self):
