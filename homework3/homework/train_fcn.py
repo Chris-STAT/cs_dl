@@ -22,6 +22,28 @@ def train(args):
     Hint: If you found a good data augmentation parameters for the CNN, use them here too. Use dense_transforms
     Hint: Use the log function below to debug and visualize your model
     """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+    loss_func = ClassificationLoss()
+    loss_func.to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    epochs = 50
+
+    trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
+    data_train = load_dense_data('data/train', transform = trans)
+
+
+    for epoch in range(epochs):
+        model.train()
+
+        for image, labels in data_train:
+            image = image.to(device)
+            labels = labels.to(device)
+            optimizer.zero_grad()
+            pred_labels = model(image)
+            loss = loss_func(pred_labels, labels)
+            loss.backward()
+            optimizer.step()
     save_model(model)
 
 
