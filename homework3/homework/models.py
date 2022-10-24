@@ -136,7 +136,7 @@ class FCN(torch.nn.Module):
         self.d_2_3 = torch.nn.ConvTranspose2d(64,128, kernel_size=3, stride=1, padding=1)
 
         self.u_3_4 = torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1)
-        self.u_4_5 = torch.nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=1)
+        self.u_4_5 = torch.nn.ConvTranspose2d(128, 32, kernel_size=3, stride=1, padding=1)
 
 
 
@@ -161,10 +161,10 @@ class FCN(torch.nn.Module):
         x3 = x3 + self.d_2_3(x2) #128
         x4 = self.u_layer_3(x3) #64
         x4 = x4 + self.u_3_4(x3) #64
-        x4 = torch.cat([x2, x4], dim=1) #64
+        x4 = torch.cat([x2, x4], dim=1) #128
         x5 = self.u_layer_2(x4)  #32
         x5 = x5 + self.u_4_5(x4) #32
-        x5= torch.cat([x1, x5], dim=1) #32
+        x5= torch.cat([x1, x5], dim=1) #64
         x5 = self.u_layer_1(x5) #5
         x_output = x5[:,:,:h,:w]
         return x_output
