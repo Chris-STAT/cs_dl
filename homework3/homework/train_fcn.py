@@ -42,7 +42,7 @@ def train(args):
             labels = labels.to(device)
             optimizer.zero_grad()
             pred_labels = model(image)
-            loss = loss_func(pred_labels, labels)
+            loss = loss_func(pred_labels, labels.long())
             loss.backward()
             optimizer.step()
     save_model(model)
