@@ -126,11 +126,11 @@ class FCN(torch.nn.Module):
                          torch.nn.ReLU()
                          )
 
-       self.u_layer_1 = torch.nn.Sequential(
-                        torch.nn.ConvTranspose2d(32,5, kernel_size=3, stride=1, padding=1),
-                        torch.nn.BatchNorm2d(5)
-                        torch.nn.ReLU()
-                        )
+        self.u_layer_1 = torch.nn.Sequential(
+                         torch.nn.ConvTranspose2d(32,5, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(5)
+                         torch.nn.ReLU()
+                         )
 
         self.skip_d_1_2 = torch.nn.ConvTranspose2d(32,64, kernel_size=3, stride=1, padding=1)
         self.skip_d_2_3 = torch.nn.ConvTranspose2d(64,128, kernel_size=3, stride=1, padding=1)
@@ -151,7 +151,7 @@ class FCN(torch.nn.Module):
               convolution
         """
         #raise NotImplementedError('FCN.forward')
-        _, _, h, w = x.shape
+        s, t, h, w = x.shape
         x1 = self.d_layer_1(x)
         x2 = self.d_layer_2(x1)
         x2 = x2 + self.skip_u_1_2(x1)
@@ -163,10 +163,6 @@ class FCN(torch.nn.Module):
         x5 = x5 + self.skip_u_4_5(x4)
         x_output = x5[:,:,:h,:w]
         return x_output
-
-
-
-
 
 
 
