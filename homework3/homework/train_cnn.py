@@ -25,7 +25,7 @@ def train(args):
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     epochs = 20
 
-    train_trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
+    trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
     data_train = load_data('data/train', transform = trans)
 
 
