@@ -1,11 +1,12 @@
 import torch
 import numpy as np
 
-from .models import FCN, save_model
+from .models import FCN, save_model, ClassificationLoss
 from .utils import load_dense_data, DENSE_CLASS_DISTRIBUTION, ConfusionMatrix
 from . import dense_transforms
 import torch.utils.tensorboard as tb
-
+import torchvision.transforms as T
+import torch.optim as optim
 
 def train(args):
     from os import path
