@@ -166,8 +166,8 @@ class FCN(torch.nn.Module):
               convolution
         """
         #raise NotImplementedError('FCN.forward')
-        transform_norm = transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))
-        x = transform_norm(x)
+        #transform_norm = transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))
+        #x = transform_norm(x)
         s, t, h, w = x.shape
         x1 = self.d_layer_1(x) #32
         x2 = self.d_layer_2(x1) #64
