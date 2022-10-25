@@ -151,9 +151,9 @@ class FCN(torch.nn.Module):
         self.d23 = torch.nn.ConvTranspose2d(64,128,kernel_size=3,stride=1, padding=1)
         self.d34 = torch.nn.ConvTranspose2d(128,256,kernel_size=3,stride=1, padding=1)
         self.du56 = torch.nn.ConvTranspose2d(256,128,kernel_size=3,stride=1, padding=1)
-        self.u56 = torch.nn.COnvTranspose2d(128,64,kernel_size=3,stride=1, padding=1)
-        self.u67 = torch.nn.COnvTranspose2d(64,32,kernel_size=3,stride=1, padding=1)
-        self.u18 = torch.nn.COnvTranspose2d(3,5,kernel_size=3,stride=1, padding=1)
+        self.u56 = torch.nn.ConvTranspose2d(128,64,kernel_size=3,stride=1, padding=1)
+        self.u67 = torch.nn.ConvTranspose2d(64,32,kernel_size=3,stride=1, padding=1)
+        self.u18 = torch.nn.ConvTranspose2d(3,5,kernel_size=3,stride=1, padding=1)
 
     def forward(self, x):
         """
