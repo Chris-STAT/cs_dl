@@ -25,7 +25,7 @@ class ResBlock(torch.nn.Module):
         super().__init__()
         self.cnn_layer_1 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
         self.bn_layer_1 = torch.nn.BatchNorm2d(out_c)
-        self.cnn_layer_2 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
+        self.cnn_layer_2 = torch.nn.Conv2d(in_c, out_c, 3, stride = 2, padding = 1)
         self.bn_layer_2 = torch.nn.BatchNorm2d(out_c)
         self.act_layer= torch.nn.ReLU()
 
@@ -51,9 +51,9 @@ class CNNClassifier(torch.nn.Module):
         """
 
         input_channels = 3
-        img_size = 128
-        in_c = img_size
-        out_c = img_size
+        size = 128
+        in_c = size
+        out_c = size
         n_classes = 6
 
         self.layer_1 = torch.nn.Conv2d(input_channels, out_c,3,stride=1,padding=1)
@@ -61,6 +61,8 @@ class CNNClassifier(torch.nn.Module):
         self.layer_3 = ResBlock(in_c, out_c)
         self.layer_4 = ResBlock(in_c, out_c)
         self.layer_5 = ResBlock(in_c, out_c)
+        self.layer_6 = ResBlock(in_c, out_c)
+        self.dropout = torch.nn.Dropout(0.15)
         self.output = torch.nn.Linear(in_c,n_classes)
 
     def forward(self, x):
@@ -78,6 +80,8 @@ class CNNClassifier(torch.nn.Module):
         x = self.layer_3(x)
         x = self.layer_4(x)
         x = self.layer_5(x)
+        x = self.layer_6(x)
+        x = self.dropout(x)
         x =x.mean((2,3))
         x = self.output(x)
         return x
