@@ -177,7 +177,7 @@ class FCN(torch.nn.Module):
         x4 = self.d_layer_4(x3) # 256
         x5 = self.u_layer_4(x4) # 128
         x5_skip = torch.cat([x5,x3], dim=1) #256
-        x6 = self.u_layer_3(x5) #64
+        x6 = self.u_layer_3(x5_skip) #64
         x_6_skip = torch.cat([x6, x2], dim=1) # 128
         x7 = self.u_layer_2(x_6_skip) #32
         x7_skip = torch.cat([x7,x1], dim=1) # 64
