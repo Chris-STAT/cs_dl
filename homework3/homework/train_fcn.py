@@ -57,7 +57,6 @@ def train(args):
             accuracy = accuracy + (pred.argmax(1) == label).float().mean().item()
             count += 1
         print("Epoch: " + str(epoch) + ", Accuracy: " + str(accuracy/count))
-        if accuracy/count>0.87: break
     save_model(model)
 
 
