@@ -150,6 +150,10 @@ class FCN(torch.nn.Module):
         self.d12 = torch.nn.ConvTranspose2d(32,64,kernel_size=3,stride=1, padding=1)
         self.d23 = torch.nn.ConvTranspose2d(64,128,kernel_size=3,stride=1, padding=1)
         self.d34 = torch.nn.ConvTranspose2d(128,256,kernel_size=3,stride=1, padding=1)
+        self.du56 = torch.nn.ConvTranspose2d(256,128,kernel_size=3,stride=1, padding=1)
+        self.u56 = torch.nn.COnvTranspose2d(128,64,kernel_size=3,stride=1, padding=1)
+        self.u67 = torch.nn.COnvTranspose2d(64,32,kernel_size=3,stride=1, padding=1)
+        self.u18 = torch.nn.COnvTranspose2d(3,5,kernel_size=3,stride=1, padding=1)
 
     def forward(self, x):
         """
@@ -173,12 +177,16 @@ class FCN(torch.nn.Module):
         x4 = self.d_layer_4(x3) # 256
         x4 = x4 + self.d34(x3) #256
         x5 = self.u_layer_4(x4) # 128
+        x5 = x5 + self.du56(x4) #128
         x5_skip = torch.cat([x5,x3], dim=1) #256
         x6 = self.u_layer_3(x5_skip) #64
+        x6 = x6 + self.u56(x5) #64
         x_6_skip = torch.cat([x6, x2], dim=1) # 128
         x7 = self.u_layer_2(x_6_skip) #32
+        x7 = x7 + self.u67(x6) #32
         x7_skip = torch.cat([x7,x1], dim=1) # 64
         x8 = self.u_layer_1(x7_skip) #5
+        x8 = x8 + self.u18(x) #5
         x_output = x8[:,:,:h,:w]
         return x_output
 
