@@ -101,7 +101,7 @@ class FCN(torch.nn.Module):
         input_channels = 3
 
         self.d_layer_1 = torch.nn.Sequential(
-                         torch.nn.Conv2d(input_channels, 32, kernel_size=3, stride=1, padding=1),
+                         torch.nn.Conv2d(input_channels, 32, kernel_size=3, stride=2, padding=1),
                          torch.nn.BatchNorm2d(32),
                          torch.nn.ReLU()
                          )
@@ -115,28 +115,41 @@ class FCN(torch.nn.Module):
                          torch.nn.BatchNorm2d(128),
                          torch.nn.ReLU()
                          )
+        self.d_layer_4 = torch.nn.Sequential(
+                         torch.nn.Conv2d(128,256, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(256),
+                         torch.nn.ReLU()
+                         )
+
+        self.u_layer_4 = torch.nn.Sequential(
+                         torch.nn.ConvTranspose2d(256,128, kernel_size=3, stride=1, padding=1),
+                         torch.nn.BatchNorm2d(128),
+                         torch.nn.ReLU()
+                         )
         self.u_layer_3 = torch.nn.Sequential(
-                         torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1),
+                         torch.nn.ConvTranspose2d(256,64, kernel_size=3, stride=1, padding=1),
                          torch.nn.BatchNorm2d(64),
                          torch.nn.ReLU()
                          )
+
         self.u_layer_2 = torch.nn.Sequential(
                          torch.nn.ConvTranspose2d(128,32, kernel_size=3, stride=1, padding=1),
                          torch.nn.BatchNorm2d(32),
                          torch.nn.ReLU()
                          )
-
-        self.u_layer_1 = torch.nn.Sequential(
+        self.u_layer_1 = torch.nn.Squential(
                          torch.nn.ConvTranspose2d(64,5, kernel_size=3, stride=1, padding=1),
                          torch.nn.BatchNorm2d(5),
                          torch.nn.ReLU()
-                         )
+                        )
 
         self.d_1_2 = torch.nn.ConvTranspose2d(32,64, kernel_size=3, stride=1, padding=1)
         self.d_2_3 = torch.nn.ConvTranspose2d(64,128, kernel_size=3, stride=1, padding=1)
+        self.d_3_4 = torch.nn.ConvTranspose2d(128, 256, kernel_size=3, stride=1, padding=1)
 
-        self.u_3_4 = torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1)
-        self.u_4_5 = torch.nn.ConvTranspose2d(128, 32, kernel_size=3, stride=1, padding=1)
+
+        self.u_4_5 = torch.nn.ConvTranspose2d(128,64, kernel_size=3, stride=1, padding=1)
+        self.u_5_6 = torch.nn.ConvTranspose2d(128, 32, kernel_size=3, stride=1, padding=1)
 
 
 
@@ -156,17 +169,16 @@ class FCN(torch.nn.Module):
         s, t, h, w = x.shape
         x1 = self.d_layer_1(x) #32
         x2 = self.d_layer_2(x1) #64
-        x2 = x2 + self.d_1_2(x1) #64
         x3 = self.d_layer_3(x2)  #128
-        x3 = x3 + self.d_2_3(x2) #128
-        x4 = self.u_layer_3(x3) #64
-        x4 = x4 + self.u_3_4(x3) #64
-        x4 = torch.cat([x2, x4], dim=1) #128
-        x5 = self.u_layer_2(x4)  #32
-        x5 = x5 + self.u_4_5(x4) #32
-        x5= torch.cat([x1, x5], dim=1) #64
-        x5 = self.u_layer_1(x5) #5
-        x_output = x5[:,:,:h,:w]
+        x4 = self.d_layer_4(x3) # 256
+        x5 = self.u_layer_4(x4) # 128
+        x5_skip = torch.cat([x5,x3], dim=1) #256
+        x6 = self.u_layer_3(x5) #64
+        x_6_skip = torch.cat([x6, x2], dim=1) # 128
+        x7 = self.u_layer_2(x_6_skip) #32
+        x7_skip = torch.cat([x7,x1], dim=1) # 64
+        x8 = self.u_layer_1(x7_skip) #5
+        x_output = x8[:,:,:h,:w]
         return x_output
 
 

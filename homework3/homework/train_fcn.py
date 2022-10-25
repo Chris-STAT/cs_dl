@@ -56,7 +56,7 @@ def train(args):
             pred = model(image)
             accuracy = accuracy + (pred.argmax(1) == label).float().mean().item()
             count += 1
-            print("Epoch: " + str(epoch) + ", Accuracy: " + str(accuracy/count))
+        print("Epoch: " + str(epoch) + ", Accuracy: " + str(accuracy/count))
     save_model(model)
 
 
