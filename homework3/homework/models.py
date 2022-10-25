@@ -62,7 +62,7 @@ class CNNClassifier(torch.nn.Module):
         self.layer_4 = ResBlock(in_c, out_c)
         self.layer_5 = ResBlock(in_c, out_c)
         self.layer_6 = ResBlock(in_c, out_c)
-        self.dropout = torch.nn.Dropout(0.15)
+        #self.dropout = torch.nn.Dropout(0.15)
         self.output = torch.nn.Linear(in_c,n_classes)
 
     def forward(self, x):
@@ -81,7 +81,7 @@ class CNNClassifier(torch.nn.Module):
         x = self.layer_4(x)
         x = self.layer_5(x)
         x = self.layer_6(x)
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x =x.mean((2,3))
         x = self.output(x)
         return x
