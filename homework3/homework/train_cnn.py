@@ -49,7 +49,7 @@ def train(args):
         accuracy = 0
         for image, label in data_val:
             image = image.to(device)
-            labels = labels.to(device)
+            label = label.to(device)
             pred = model(image)
             accuracy = accuracy + (pred.argmax(1) == label).float().mean().item()
             count += 1
