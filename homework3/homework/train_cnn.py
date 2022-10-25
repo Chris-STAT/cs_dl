@@ -27,6 +27,7 @@ def train(args):
 
     trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
     data_train = load_data('data/train', transform = trans)
+    data_val = load_data('data/valid', transform = trans)
 
 
 
@@ -42,6 +43,18 @@ def train(args):
             loss = loss_func(pred_labels, labels)
             loss.backward()
             optimizer.step()
+
+        model.eval()
+        count = 0
+        accuracy = 0
+        for image, label in data_val:
+            image = image.to(device)
+            labels = labels.to(device)
+            pred = model(image)
+            accuracy = accuracy + (pred.argmax(1) == label).float().mean().item()
+            count += 1
+        print("Epoch: " + str(epoch) + ", Accuracy: " + str(accuracy/count))
+
     save_model(model)
 
 
