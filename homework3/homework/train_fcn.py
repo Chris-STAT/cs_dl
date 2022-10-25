@@ -32,7 +32,7 @@ def train(args):
 
     #trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
     data_train = load_dense_data('dense_data/train')
-    data_val = load_dense_data('dense_data/val')
+    data_val = load_dense_data('dense_data/valid')
 
 
     for epoch in range(epochs):
