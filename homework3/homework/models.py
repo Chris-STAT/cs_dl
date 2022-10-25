@@ -141,7 +141,7 @@ class FCN(torch.nn.Module):
                          torch.nn.BatchNorm2d(32),
                          torch.nn.ReLU()
                          )
-        self.u_layer_1 = torch.nn.Squential(
+        self.u_layer_1 = torch.nn.Sequential(
                          torch.nn.ConvTranspose2d(64,5, kernel_size=3, stride=1, padding=1),
                          torch.nn.BatchNorm2d(5),
                          torch.nn.ReLU()
