@@ -147,7 +147,9 @@ class FCN(torch.nn.Module):
                          torch.nn.ReLU()
                         )
 
-
+        self.d12 = torch.nn.ConvTranspose2d(32,64,kernal=3,stride=1, padding=1)
+        self.d23 = torch.nn.ConvTranspose2d(64,128,kernal=3,stride=1, padding=1)
+        self.d34 = torch.nn.ConvTranspose2d(128,256,kernal=3,stride=1, padding=1)
 
     def forward(self, x):
         """
@@ -165,8 +167,11 @@ class FCN(torch.nn.Module):
         s, t, h, w = x.shape
         x1 = self.d_layer_1(x) #32
         x2 = self.d_layer_2(x1) #64
+        x2 = x2 + self.d12(x1) #64
         x3 = self.d_layer_3(x2)  #128
+        x3 = x3 + self.d23(x2) # 128
         x4 = self.d_layer_4(x3) # 256
+        x4 = x4 + self.d34(x3) #256
         x5 = self.u_layer_4(x4) # 128
         x5_skip = torch.cat([x5,x3], dim=1) #256
         x6 = self.u_layer_3(x5_skip) #64
