@@ -22,7 +22,7 @@ def train(args):
     model.to(device)
     loss_func = ClassificationLoss()
     loss_func.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay = 1e-5)
     epochs = 30
 
     trans = T.Compose((T.ToPILImage(), T.ColorJitter(0.8, 0.3), T.RandomHorizontalFlip(), T.RandomCrop(32), T.ToTensor()))
