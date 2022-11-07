@@ -44,7 +44,7 @@ class Detector(torch.nn.Module):
         def forward(self,x):
             return F.relu(self.res_block(x) + self.skip(x))
     """
-    class Res_block(torch.nn.Module):
+    class Res_Block(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
             self.c1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=kernel_size // 2,
