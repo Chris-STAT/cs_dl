@@ -29,7 +29,7 @@ class Detector(torch.nn.Module):
     class Res_Block(torch.nn.Module):
         def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
             super().__init__()
-            self.res_block = torch.nn.sequential(
+            self.res_block = torch.nn.Sequential(
             torch.nn.Conv2d(input_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
             torch.nn.BatchNorm2d(output_dim),
             F.ReLU(),
@@ -48,7 +48,7 @@ class Detector(torch.nn.Module):
     class UpBlock(torch.nn.Module):
         def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
             super().__init__()
-            self.up_block = torch.nn.sequential(
+            self.up_block = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(input_dim, output_dim, kernel_size = kernel_size, padding = (kernel_size-1)//2, stride=stride,
             output_padding = 1),
             F.ReLU()
@@ -75,10 +75,10 @@ class Detector(torch.nn.Module):
         self.res_block_3 = self.Res_Block(32,64)
         self.res_block_4 = self.Res_Block(64,128)
 
-        self.up_block_4 = UpBlock(128,128)
-        self.up_block_3 = Upblock(128+64,64)
-        self.up_block_2 = UpBlock(64+32,32)
-        self.up_block_1 = UpBlock(32+16,16)
+        self.up_block_4 = self.UpBlock(128,128)
+        self.up_block_3 = self.Upblock(128+64,64)
+        self.up_block_2 = self.UpBlock(64+32,32)
+        self.up_block_1 = self.UpBlock(32+16,16)
 
         self.heatmap = torch.nn.Conv2d(16,1,1)
 
