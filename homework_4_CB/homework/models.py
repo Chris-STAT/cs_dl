@@ -80,7 +80,7 @@ class Detector(torch.nn.Module):
         self.up_block_2 = self.UpBlock(64+32,32)
         self.up_block_1 = self.UpBlock(32+16,16)
 
-        self.heatmap = torch.nn.Conv2d(16,1,1)
+        self.output = torch.nn.Conv2d(16,3,1)
 
 
     def forward(self, x):
@@ -112,7 +112,7 @@ class Detector(torch.nn.Module):
         xx = torch.cat([xx,up_blocks[1]], dim=1)
         xx = xx[:,:,:up_blocks[0].size(2), :up_blocks[0].size(3)]
         xx = torch.cat([xx,up_blocks[0]], dim=1)
-        return self.heatmap(xx)
+        return self.output(xx)
 
 
     def detect(self, image):
