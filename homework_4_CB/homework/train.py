@@ -15,11 +15,35 @@ def train(args):
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'), flush_secs=1)
         valid_logger = tb.SummaryWriter(path.join(args.log_dir, 'valid'), flush_secs=1)
 
-    """
-    Your code here, modify your HW3 code
-    Hint: Use the log function below to debug and visualize your model
-    """
-    raise NotImplementedError('train')
+
+    loss = torch.nn.BCEWithLogitLoss().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-6)
+
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    model = Detector().to(device)
+
+    train_data = load_detection_data('dense_data/train')
+
+    for epoch in range(50):
+        model.train()
+        for image, heatmap, delta in train_data:
+            image = image.to(device)
+            heatmap = heatmap.to(device)
+
+            pred_heatmap = model(image)
+
+            l = loss(pred_heatmap, heatmap).mean()
+            l.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+        model.eval()
+    save_model(model)
+
+
+
+
+
+
     save_model(model)
 
 

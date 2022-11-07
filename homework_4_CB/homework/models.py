@@ -25,13 +25,63 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
 
 
 class Detector(torch.nn.Module):
-    def __init__(self):
+
+    class Res_Block(torch.nn.Module):
+        def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
+            super().__init__()
+            self.res_block = torch.nn.sequential(
+            torch.nn.Conv2d(input_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            F.ReLU(),
+            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            F.ReLU(),
+            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            F.ReLU()
+            )
+            self.skip = torch.nn.Conv2d(input_dim, output_dim, kernel_size=1, stride=stride)
+
+        def forward(self,x):
+            return self.res_block(x) + self.skip(x)
+
+    class UpBlock(torch.nn.Module):
+        def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
+            super().__init__()
+            self.up_block = torch.nn.sequential(
+            torch.nn.ConvTranspose2d(input_dim, output_dim, kernel_size = kernel_size, padding = (kernel_size-1)//2, stride=stride,
+            output_padding = 1),
+            F.ReLU()
+            )
+
+        def forward(self,x):
+            return self.up_block(x)
+
+
+
+
+    def __init__(self, kernel_size=3):
         """
            Your code here.
            Setup your detection network
         """
         super().__init__()
-        raise NotImplementedError('Detector.__init__')
+        #raise NotImplementedError('Detector.__init__')
+        self.input_mean = torch.Tensor([0.3521554, 0.30068502, 0.28527516])
+        self.input_std = torch.Tensor([0.18182722, 0.18656468, 0.15938024])
+
+        self.res_block_1 = Res_Block(3,16)
+        self.res_block_2 = Res_Block(16,32)
+        self.res_block_3 = Res_Block(32,64)
+        self.res_block_4 = Res_Block(64,128)
+
+        self.up_block_4 = UpBlock(128,128)
+        self.up_block_3 = Upblock(128+64,64)
+        self.up_block_2 = UpBlock(64+32,32)
+        self.up_block_1 = UpBlock(32+16,16)
+
+        self.heatmap = torch.nn.Conv2d(16,1,1)
+
 
     def forward(self, x):
         """
@@ -39,7 +89,31 @@ class Detector(torch.nn.Module):
            Implement a forward pass through the network, use forward for training,
            and detect for detection
         """
-        raise NotImplementedError('Detector.forward')
+        #raise NotImplementedError('Detector.forward')
+        x_scaled = (x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device)
+        up_blocks = []
+        up_blocks.append(x_scaled)
+        xx = self.res_block_1(x_scaled)
+        up_blocks.append(xx)
+        xx = self.res_block_2(xx)
+        up_blocks.append(xx)
+        xx = self.res_block_3(xx)
+        up_blocks.append(xx)
+        xx = self.res_block_4(xx)
+        up_blocks.append(xx)
+        xx = self.up_block_4(xx)
+        xx = xx[:,:,:up_blocks[3].size(2), :up_blocks[3].size(3)]
+        xx = torch.cat([xx,up_blocks[3]], dim=1)
+        xx = self.up_block_3(xx)
+        xx = xx[:,:,:up_blocks[2].size(2), :up_blocks[2].size(3)]
+        xx = torch.cat([xx,up_blocks[2]], dim=1)
+        xx = self.up_block_2(xx)
+        xx = xx[:,:,:up_blocks[1].size(2), :up_blocks[1].size(3)]
+        xx = torch.cat([xx,up_blocks[1]], dim=1)
+        xx = xx[:,:,:up_blocks[0].size(2), :up_blocks[0].size(3)]
+        xx = torch.cat([xx,up_blocks[0]], dim=1)
+        return self.heatmap(xx)
+
 
     def detect(self, image):
         """
@@ -54,7 +128,9 @@ class Detector(torch.nn.Module):
                  scalar. Otherwise pytorch might keep a computation graph in the background and your program will run
                  out of memory.
         """
-        raise NotImplementedError('Detector.detect')
+        #raise NotImplementedError('Detector.detect')
+        return  [[(*peak, 0, 0) for peak in extract_peak(heatmap)] for heatmap in self(image[None]).squeeze(0)]
+
 
 
 def save_model(model):
