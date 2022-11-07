@@ -16,12 +16,12 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     # retain the size of the heatmap: W (H) - Kernal_size + 2*padding +1 = W (H) => padding = (kernal_size-1)/2
     H, W = heatmap.shape[0], heatmap.shape[1]
     window_max, indices = F.max_pool2d(heatmap[None, None], kernel_size=max_pool_ks, padding = (max_pool_ks-1)//2, stride = 1, return_indices=True)
-    peak_ind = torch.logical_and(heatmap >= window_max, window_max > min_score)
+    peak_ind = torch.logical_and((heatmap >= window_max).float, window_max > min_score)
     window_max = window_max[peak_ind]
     indices = indices[peak_ind]
     scores, ind = torch.topk(window_max, min(len(window_max),max_det))
     cx, cy = indices[ind]%W, indices[ind]//W
-    return[zip(scores,cx,cy)]
+    return[*zip(scores,cx,cy)]
 
 
 class Detector(torch.nn.Module):
