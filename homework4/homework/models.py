@@ -30,24 +30,24 @@ class Detector(torch.nn.Module):
     class Res_Block(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
-            self.conv_1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2,
+            self.c1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2,
                                       stride=stride, bias=False)
-            self.bn_1 = torch.nn.BatchNorm2d(n_output)
-            self.conv_2 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
-            self.bn_2 = torch.nn.BatchNorm2d(n_output)
-            self.conv_3 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
-            self.bn_3 = torch.nn.BatchNorm2d(n_output)
+            self.b1 = torch.nn.BatchNorm2d(n_output)
+            self.c2 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
+            self.b2 = torch.nn.BatchNorm2d(n_output)
+            self.c3 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
+            self.b3 = torch.nn.BatchNorm2d(n_output)
             self.skip = torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride)
 
         def forward(self, x):
-            xx = self.conv_1(x)
-            xx = self.bn_1(xx)
+            xx = self.c1(x)
+            xx = self.b1(xx)
             xx = F.relu(xx)
-            xx = self.conv_2(xx)
-            xx = self.bn_2(xx)
+            xx = self.c2(xx)
+            xx = self.b2(xx)
             xx = F.relu(xx)
-            xx = self.conv_3(xx)
-            xx = self.bn_3(xx)
+            xx = self.c3(xx)
+            xx = self.b3(xx)
             return F.relu(xx + self.skip(x))
 
 
