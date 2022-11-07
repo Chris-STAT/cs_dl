@@ -99,7 +99,7 @@ class Detector(torch.nn.Module):
         self.up_block_2 = self.UpBlock(64+32,32)
         self.up_block_1 = self.UpBlock(32+16,16)
 
-        self.output = torch.nn.Conv2d(16,3,1)
+        self.output = torch.nn.Conv2d(3,1,1)
 
 
     def forward(self, x):
