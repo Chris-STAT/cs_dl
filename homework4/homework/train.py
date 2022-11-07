@@ -14,10 +14,10 @@ def train(args):
     loss = torch.nn.BCEWithLogitsLoss(reduction='none').to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-6)
 
-    train_data = load_detection_data('dense_data/train', num_workers=4)
-    val_data = load_detection_data('dense_data/valid',num_workers=4)
+    train_data = load_detection_data('dense_data/train', num_workers=3,batch_size=16)
+    val_data = load_detection_data('dense_data/valid',num_workers=3,batch_size=16)
 
-    for epoch in range(50):
+    for epoch in range(30):
         model.train()
         for image, heatmap, delta in train_data:
             image = image.to(device)
