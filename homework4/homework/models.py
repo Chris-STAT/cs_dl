@@ -89,6 +89,11 @@ class Detector(torch.nn.Module):
         self.res_block_3 = self.Res_Block(32,64)
         self.res_block_4 = self.Res_Block(64,128)
 
+        #self.up_block_4 = self.UpBlock(128,128)
+        #self.up_block_3 = self.UpBlock(128+64,64)
+        #self.up_block_2 = self.UpBlock(64+32,32)
+        #self.up_block_1 = self.UpBlock(32+16,16)
+
         self.up_block_4 = self.UpBlock(128,128)
         self.up_block_3 = self.UpBlock(128+64,64)
         self.up_block_2 = self.UpBlock(64+32,32)
@@ -124,6 +129,7 @@ class Detector(torch.nn.Module):
         xx = self.up_block_2(xx)
         xx = xx[:,:,:up_blocks[1].size(2), :up_blocks[1].size(3)]
         xx = torch.cat([xx,up_blocks[1]], dim=1)
+        xx = self.up_block_1(xx)
         xx = xx[:,:,:up_blocks[0].size(2), :up_blocks[0].size(3)]
         xx = torch.cat([xx,up_blocks[0]], dim=1)
         return self.output(xx)
