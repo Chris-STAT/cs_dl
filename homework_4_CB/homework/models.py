@@ -32,13 +32,13 @@ class Detector(torch.nn.Module):
             self.res_block = torch.nn.Sequential(
             torch.nn.Conv2d(input_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
             torch.nn.BatchNorm2d(output_dim),
-            F.ReLU(),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
             torch.nn.BatchNorm2d(output_dim),
-            F.ReLU(),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
             torch.nn.BatchNorm2d(output_dim),
-            F.ReLU()
+            torch.nn.ReLU()
             )
             self.skip = torch.nn.Conv2d(input_dim, output_dim, kernel_size=1, stride=stride)
 
@@ -51,7 +51,7 @@ class Detector(torch.nn.Module):
             self.up_block = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(input_dim, output_dim, kernel_size = kernel_size, padding = (kernel_size-1)//2, stride=stride,
             output_padding = 1),
-            F.ReLU()
+            torch.nn.ReLU()
             )
 
         def forward(self,x):
