@@ -76,7 +76,7 @@ class Detector(torch.nn.Module):
         self.res_block_4 = self.Res_Block(64,128)
 
         self.up_block_4 = self.UpBlock(128,128)
-        self.up_block_3 = self.Upblock(128+64,64)
+        self.up_block_3 = self.UpBlock(128+64,64)
         self.up_block_2 = self.UpBlock(64+32,32)
         self.up_block_1 = self.UpBlock(32+16,16)
 
