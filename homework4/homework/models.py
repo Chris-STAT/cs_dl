@@ -26,8 +26,6 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
 
 class Detector(torch.nn.Module):
 
-    class Res_Block(torch.nn.Module):
-        def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
 
     class Res_Block(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
