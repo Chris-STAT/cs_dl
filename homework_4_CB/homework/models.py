@@ -70,10 +70,10 @@ class Detector(torch.nn.Module):
         self.input_mean = torch.Tensor([0.3521554, 0.30068502, 0.28527516])
         self.input_std = torch.Tensor([0.18182722, 0.18656468, 0.15938024])
 
-        self.res_block_1 = Res_Block(3,16)
-        self.res_block_2 = Res_Block(16,32)
-        self.res_block_3 = Res_Block(32,64)
-        self.res_block_4 = Res_Block(64,128)
+        self.res_block_1 = self.Res_Block(3,16)
+        self.res_block_2 = self.Res_Block(16,32)
+        self.res_block_3 = self.Res_Block(32,64)
+        self.res_block_4 = self.Res_Block(64,128)
 
         self.up_block_4 = UpBlock(128,128)
         self.up_block_3 = Upblock(128+64,64)
