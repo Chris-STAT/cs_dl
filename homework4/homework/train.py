@@ -15,6 +15,7 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-6)
 
     train_data = load_detection_data('dense_data/train', num_workers=4)
+    val_data = load_detection_data('dense_data/valid',num_worker=4)
 
     for epoch in range(50):
         model.train()
@@ -29,6 +30,16 @@ def train(args):
             optimizer.step()
             optimizer.zero_grad()
         model.eval()
+
+        count = 0
+        l_val = 0
+        for image_val, heatmap_val, delta_val in val_data:
+            image_val = image_val.to(device)
+            heatmap_val = heatmap_val.to(device)
+            pred_heatmap_val = model(image_val)
+            l_val = l_val + loss(pred_heatmap_val, heatmap_val).mean()
+            count += 1
+        print("Epoch:" + str(epoch) + ", Loss:" + str(l_val/count))    
     save_model(model)
 
 
