@@ -16,12 +16,12 @@ def train(args):
         valid_logger = tb.SummaryWriter(path.join(args.log_dir, 'valid'), flush_secs=1)
 
 
-
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    model = Detector().to(device)
     loss = torch.nn.BCEWithLogitsLoss(reduction='none').to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-6)
 
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = Detector().to(device)
+
 
     train_data = load_detection_data('dense_data/train')
 
