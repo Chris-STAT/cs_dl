@@ -28,37 +28,29 @@ class Detector(torch.nn.Module):
 
     class Res_Block(torch.nn.Module):
         def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
-            """
-            super().__init__()
-            self.res_block = torch.nn.Sequential(
-            torch.nn.Conv2d(input_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
-            torch.nn.BatchNorm2d(output_dim),
-            torch.nn.ReLU(),
-            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
-            torch.nn.BatchNorm2d(output_dim),
-            torch.nn.ReLU(),
-            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
-            torch.nn.BatchNorm2d(output_dim)
-            )
-            self.skip = torch.nn.Conv2d(input_dim, output_dim, kernel_size=1, stride=stride)
 
-        def forward(self,x):
-            return F.relu(self.res_block(x) + self.skip(x))
-        """
     class Res_Block(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
-            self.c1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2,
+            self.conv_1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2,
                                       stride=stride, bias=False)
-            self.c2 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
-            self.c3 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
-            self.b1 = torch.nn.BatchNorm2d(n_output)
-            self.b2 = torch.nn.BatchNorm2d(n_output)
-            self.b3 = torch.nn.BatchNorm2d(n_output)
+            self.bn_1 = torch.nn.BatchNorm2d(n_output)
+            self.conv_2 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
+            self.bn_2 = torch.nn.BatchNorm2d(n_output)
+            self.conv_3 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=(kernel_size-1) // 2, bias=False)
+            self.bn_3 = torch.nn.BatchNorm2d(n_output)
             self.skip = torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride)
 
         def forward(self, x):
-            return F.relu(self.b3(self.c3(F.relu(self.b2(self.c2(F.relu(self.b1(self.c1(x)))))))) + self.skip(x))
+            xx = self.conv_1(x)
+            xx = self.bn_1(xx)
+            xx = F.relu(xx)
+            xx = self.conv_2(xx)
+            xx = self.bn_2(xx)
+            xx = F.relu(xx)
+            xx = self.conv_3(xx)
+            xx = self.bn_3(xx)
+            return F.relu(xx + self.skip(x))
 
 
     class UpBlock(torch.nn.Module):
