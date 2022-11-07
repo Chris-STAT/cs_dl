@@ -12,98 +12,108 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
        @return: List of peaks [(score, cx, cy), ...], where cx, cy are the position of a peak and score is the
                 heatmap value at the peak. Return no more than max_det peaks per image
     """
-    max_cls, indices = F.max_pool2d(heatmap[None, None], kernel_size=max_pool_ks, padding=max_pool_ks // 2, stride=1, return_indices=True)
-
-    # tip: visualize is_peak and heatmap side by side.
-    is_peak = (heatmap >= max_cls).float()
-
-    mask = torch.logical_and(max_cls > min_score, is_peak == 1.0)
-    max_cls = max_cls[mask]
-    indices = indices[mask]
-    peaks, i = torch.topk(max_cls, min(max_det, len(max_cls)))
-
-    return [*zip(peaks, indices[i] % heatmap.shape[1], indices[i] // heatmap.shape[1])]
-
-
-class CNNClassifier(torch.nn.Module):
-    class Block(torch.nn.Module):
-        def __init__(self, n_input, n_output, kernel_size=3, stride=2):
-            super().__init__()
-            self.c1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=kernel_size // 2,
-                                      stride=stride, bias=False)
-            self.c2 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=kernel_size // 2, bias=False)
-            self.c3 = torch.nn.Conv2d(n_output, n_output, kernel_size=kernel_size, padding=kernel_size // 2, bias=False)
-            self.b1 = torch.nn.BatchNorm2d(n_output)
-            self.b2 = torch.nn.BatchNorm2d(n_output)
-            self.b3 = torch.nn.BatchNorm2d(n_output)
-            self.skip = torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride)
-
-        def forward(self, x):
-            return F.relu(self.b3(self.c3(F.relu(self.b2(self.c2(F.relu(self.b1(self.c1(x)))))))) + self.skip(x))
-
-    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=6, kernel_size=3):
-        super().__init__()
-        self.input_mean = torch.Tensor([0.3521554, 0.30068502, 0.28527516])
-        self.input_std = torch.Tensor([0.18182722, 0.18656468, 0.15938024])
-
-        L = []
-        c = 3
-        for l in layers:
-            L.append(self.Block(c, l, kernel_size, 2))
-            c = l
-        self.network = torch.nn.Sequential(*L)
-        self.classifier = torch.nn.Linear(c, n_output_channels)
-
-    def forward(self, x):
-        z = self.network((x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device))
-        return self.classifier(z.mean(dim=[2, 3]))
+    #raise NotImplementedError('extract_peak')
+    # retain the size of the heatmap: W (H) - Kernal_size + 2*padding +1 = W (H) => padding = (kernal_size-1)/2
+    H, W = heatmap.shape[0], heatmap.shape[1]
+    window_max, indices = F.max_pool2d(heatmap[None, None], kernel_size=max_pool_ks, padding = (max_pool_ks-1)//2, stride = 1, return_indices=True)
+    peak_ind = torch.logical_and((heatmap >= window_max).float(), window_max > min_score)
+    window_max = window_max[peak_ind]
+    indices = indices[peak_ind]
+    scores, ind = torch.topk(window_max, min(len(window_max),max_det))
+    cx, cy = indices[ind]%W, indices[ind]//W
+    return[*zip(scores,cx,cy)]
 
 
 class Detector(torch.nn.Module):
-    class UpBlock(torch.nn.Module):
-        def __init__(self, n_input, n_output, kernel_size=3, stride=2):
+
+    class Res_Block(torch.nn.Module):
+        def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
             super().__init__()
-            self.c1 = torch.nn.ConvTranspose2d(n_input, n_output, kernel_size=kernel_size, padding=kernel_size // 2,
-                                      stride=stride, output_padding=1)
+            self.res_block = torch.nn.Sequential(
+            torch.nn.Conv2d(input_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
+            torch.nn.BatchNorm2d(output_dim),
+            torch.nn.ReLU()
+            )
+            self.skip = torch.nn.Conv2d(input_dim, output_dim, kernel_size=1, stride=stride)
 
-        def forward(self, x):
-            return F.relu(self.c1(x))
+        def forward(self,x):
+            return self.res_block(x) + self.skip(x)
 
-    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=3, kernel_size=3, use_skip=True):
+    class UpBlock(torch.nn.Module):
+        def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
+            super().__init__()
+            self.up_block = torch.nn.Sequential(
+            torch.nn.ConvTranspose2d(input_dim, output_dim, kernel_size = kernel_size, padding = (kernel_size-1)//2, stride=stride,
+            output_padding = 1),
+            torch.nn.ReLU()
+            )
+
+        def forward(self,x):
+            return self.up_block(x)
+
+
+
+
+    def __init__(self, kernel_size=3):
+        """
+           Your code here.
+           Setup your detection network
+        """
         super().__init__()
+        #raise NotImplementedError('Detector.__init__')
         self.input_mean = torch.Tensor([0.3521554, 0.30068502, 0.28527516])
         self.input_std = torch.Tensor([0.18182722, 0.18656468, 0.15938024])
 
-        c = 3
-        self.use_skip = use_skip
-        self.n_conv = len(layers)
-        skip_layer_size = [3] + layers[:-1]
-        for i, l in enumerate(layers):
-            self.add_module('conv%d' % i, CNNClassifier.Block(c, l, kernel_size, 2))
-            c = l
-        for i, l in list(enumerate(layers))[::-1]:
-            self.add_module('upconv%d' % i, self.UpBlock(c, l, kernel_size, 2))
-            c = l
-            if self.use_skip:
-                c += skip_layer_size[i]
-        self.classifier = torch.nn.Conv2d(c, n_output_channels, 1)
+        self.res_block_1 = self.Res_Block(3,16)
+        self.res_block_2 = self.Res_Block(16,32)
+        self.res_block_3 = self.Res_Block(32,64)
+        self.res_block_4 = self.Res_Block(64,128)
+
+        self.up_block_4 = self.UpBlock(128,128)
+        self.up_block_3 = self.UpBlock(128+64,64)
+        self.up_block_2 = self.UpBlock(64+32,32)
+        self.up_block_1 = self.UpBlock(32+16,16)
+
+        self.output = torch.nn.Conv2d(16,3,1)
+
 
     def forward(self, x):
-        z = (x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device)
-        up_activation = []
-        for i in range(self.n_conv):
-            # Add all the information required for skip connections
-            up_activation.append(z)
-            z = self._modules['conv%d' % i](z)
+        """
+           Your code here.
+           Implement a forward pass through the network, use forward for training,
+           and detect for detection
+        """
+        #raise NotImplementedError('Detector.forward')
+        x_scaled = (x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device)
+        up_blocks = []
+        up_blocks.append(x_scaled)
+        xx = self.res_block_1(x_scaled)
+        up_blocks.append(xx)
+        xx = self.res_block_2(xx)
+        up_blocks.append(xx)
+        xx = self.res_block_3(xx)
+        up_blocks.append(xx)
+        xx = self.res_block_4(xx)
+        up_blocks.append(xx)
+        xx = self.up_block_4(xx)
+        xx = xx[:,:,:up_blocks[3].size(2), :up_blocks[3].size(3)]
+        xx = torch.cat([xx,up_blocks[3]], dim=1)
+        xx = self.up_block_3(xx)
+        xx = xx[:,:,:up_blocks[2].size(2), :up_blocks[2].size(3)]
+        xx = torch.cat([xx,up_blocks[2]], dim=1)
+        xx = self.up_block_2(xx)
+        xx = xx[:,:,:up_blocks[1].size(2), :up_blocks[1].size(3)]
+        xx = torch.cat([xx,up_blocks[1]], dim=1)
+        xx = xx[:,:,:up_blocks[0].size(2), :up_blocks[0].size(3)]
+        xx = torch.cat([xx,up_blocks[0]], dim=1)
+        return self.output(xx)
 
-        for i in reversed(range(self.n_conv)):
-            z = self._modules['upconv%d' % i](z)
-            # Fix the padding
-            z = z[:, :, :up_activation[i].size(2), :up_activation[i].size(3)]
-            # Add the skip connection
-            if self.use_skip:
-                z = torch.cat([z, up_activation[i]], dim=1)
-        return self.classifier(z)
 
     def detect(self, image):
         """
@@ -118,7 +128,9 @@ class Detector(torch.nn.Module):
                  scalar. Otherwise pytorch might keep a computation graph in the background and your program will run
                  out of memory.
         """
-        return [[(*peak, 0, 0) for peak in extract_peak(heatmap, max_pool_ks=11, max_det=15)] for heatmap in self(image[None]).squeeze(0)]
+        #raise NotImplementedError('Detector.detect')
+        return  [[(*peak, 0, 0) for peak in extract_peak(heatmap)] for heatmap in self(image[None]).squeeze(0)]
+
 
 
 def save_model(model):
