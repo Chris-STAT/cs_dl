@@ -37,13 +37,12 @@ class Detector(torch.nn.Module):
             torch.nn.BatchNorm2d(output_dim),
             torch.nn.ReLU(),
             torch.nn.Conv2d(output_dim, output_dim, kernel_size=kernel_size, padding=(kernel_size-1)//2, stride=stride),
-            torch.nn.BatchNorm2d(output_dim),
-            torch.nn.ReLU()
+            torch.nn.BatchNorm2d(output_dim)
             )
             self.skip = torch.nn.Conv2d(input_dim, output_dim, kernel_size=1, stride=stride)
 
         def forward(self,x):
-            return self.res_block(x) + self.skip(x)
+            return F.relu(self.res_block(x) + self.skip(x))
 
     class UpBlock(torch.nn.Module):
         def __init__(self, input_dim, output_dim, kernel_size=3, stride=2):
